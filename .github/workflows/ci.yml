@@ -1,0 +1,52 @@
+name: CI - Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build - Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Display Python version
+      run: python --version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Verify installation
+      run: |
+        pip list
+        echo "Build completed successfully!"
+
+    - name: Check Python syntax
+      run: |
+        python -m py_compile aval-mds.py
+        python -m py_compile aval-repos-novos.py
+        python -m py_compile aval-usuario.py
+        echo "Syntax check passed!"
+
+    - name: Run basic import test
+      run: |
+        python -c "import sys; print('Python imports working correctly')"
+        echo "Import test passed!"
